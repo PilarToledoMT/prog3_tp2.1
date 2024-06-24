@@ -1,4 +1,27 @@
-class Sensor {}
+ class Sensor {
+    constructor(id, sensor_name, sensor_type, value, unit, update_at) {
+        this.id = id;
+        this.sensor_name = sensor_name;
+        this.sensor_type = sensor_type;
+        this.value = value;
+        this.unit = unit;
+        this.update_at = update_at;
+    }
+
+    set updateValue (new_value){
+        this.value = new_value;
+        const new_date = new Date();
+        this.update_at = new_date;
+    }
+
+    set sensor_type(new_sensor_type){
+        if (new_sensor_type === "temperature" || new_sensor_type === "humidity" || new_sensor_type === "pressure"){
+            this.sensor_type = new_sensor_type;
+        }else{
+            console.log("Los únicos valores permitidos para este parámetro son: `temperature`, `humidity` y `pressure`");
+        }
+    }
+ }
 
 class SensorManager {
     constructor() {
@@ -33,7 +56,18 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(url) {
+        try{
+            const response = await fetch (url);
+            //console.log("Llego acá 1");
+            const sensors = await response.json();
+            //console.log(sensors);
+            this.sensors = sensors;
+            this.render();
+        }catch (error) {
+            console.error(error);
+        }
+    }
 
     render() {
         const container = document.getElementById("sensor-container");
@@ -54,7 +88,7 @@ class SensorManager {
                                 <strong>Tipo:</strong> ${sensor.type}
                             </p>
                             <p>
-                               <strong>Valor:</strong> 
+                               <strong>Valor:</strong>
                                ${sensor.value} ${sensor.unit}
                             </p>
                         </div>
