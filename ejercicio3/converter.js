@@ -6,11 +6,38 @@ class Currency {
 }
 
 class CurrencyConverter {
-    constructor() {}
+    constructor(apiUrl) {
+        this.apiUrl = apiUrl;
+        this.currencies = [];
+    }
 
-    getCurrencies(apiUrl) {}
+    async getCurrencies() {
+        try {
+            const response = await fetch(`${this.apiUrl}/currencies`);
+            const data = await response.json();
+            for(const currency in data){
+                const newCurrency = new Currency(currency, data[currency]);
+                this.currencies.push(newCurrency);
+            }
+        } catch (error){
+            console.error("Error al obtener los códigos de moneda", error);
+        } finally {
+            console.log("Petición completada");
+        }
+    }
 
-    convertCurrency(amount, fromCurrency, toCurrency) {}
+    async convertCurrency(amount, fromCurrency, toCurrency) {
+        if (fromCurrency.code === toCurrency.code)
+            return amount;
+        try{
+            const response = await fetch(`${this.apiUrl}/latest?amount=${amount}&from=${fromCurrency.code}&to=${toCurrency.code}`);
+            const data = await response.json();
+            return data.rates[toCurrency.code] * amount;
+        }catch(error) {
+            console.error("Error al convertir la moneda:", error);
+            return null;
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -28,14 +55,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const amount = document.getElementById("amount").value;
+        const amount = parseFloat(document.getElementById("amount").value);
         const fromCurrency = converter.currencies.find(
             (currency) => currency.code === fromCurrencySelect.value
         );
         const toCurrency = converter.currencies.find(
             (currency) => currency.code === toCurrencySelect.value
         );
-
         const convertedAmount = await converter.convertCurrency(
             amount,
             fromCurrency,
