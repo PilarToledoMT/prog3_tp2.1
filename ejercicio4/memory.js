@@ -96,10 +96,14 @@ class Board {
     }
 
     flipDownAllCards(){
+        for (let i = 0; i < this.cards.length; i++) {
+            const card = this.cards[i];
+            card.isFlipped = true;
+        }
         this.cards.forEach(card => {
             card.toggleFlip();
         });
-        console.log("flipeadas");
+        //console.log("flipeadas");
     }
 
     shuffleCards(){
@@ -107,7 +111,7 @@ class Board {
             const j = Math.floor(Math.random()*(i+1));
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
-        console.log("shuffleadas")
+        //console.log("shuffleadas")
     }
 
 }
