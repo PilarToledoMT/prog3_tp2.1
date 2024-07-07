@@ -32,7 +32,7 @@ class Card {
         cardElement.classList.remove("flipped");
     }
 
-    toggleFlip() {
+    toggleFlip(){
         if (this.isFlipped) {
             this.#unflip();
             this.isFlipped = false;
@@ -42,7 +42,7 @@ class Card {
         }
     }
 
-    matches(otherCard) {
+    matches(otherCard){
         return (this.name === otherCard.name);
     }
 }
@@ -89,32 +89,28 @@ class Board {
         }
     }
 
-    shuffleCards() {
-        for (let i = this.cards.length -1; i > 0; i--) {
+    reset(){
+        this.flipDownAllCards();
+        this.shuffleCards();
+        this.render();
+    }
+
+    flipDownAllCards(){
+        this.cards.forEach(card => {
+            card.toggleFlip();
+        });
+        console.log("flipeadas");
+    }
+
+    shuffleCards(){
+        for (let i = this.cards.length -1; i> 0; i--) {
             const j = Math.floor(Math.random()*(i+1));
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
+        console.log("shuffleadas")
     }
 
-    flipDownAllCards() {
-        this.cards.forEach((card) =>{
-            if(card.isFlipped){
-                card.toggleFlip()
-            }
-        })
-    }
-
-    reset(){
-        this.flipDownAllCards();
-        clearTimeout(this.timer);
-        this.board.render()
-        this.matchedCards.length = 0;
-        setTimeout(()=> {
-            this.shuffleCards();
-            this.render();}, 500);
-    }
 }
-
 
 class MemoryGame {
     constructor(board, flipDuration = 500) {
@@ -128,27 +124,6 @@ class MemoryGame {
             );
         }
         this.flipDuration = flipDuration;
-        document.addEventListener("DOMContentLoaded", () => {
-            const cardsData = [
-                { name: "Python", img: "./img/Python.svg" },
-                { name: "JavaScript", img: "./img/JS.svg" },
-                { name: "Java", img: "./img/Java.svg" },
-                { name: "CSharp", img: "./img/CSharp.svg" },
-                { name: "Go", img: "./img/Go.svg" },
-                { name: "Ruby", img: "./img/Ruby.svg" },
-            ];
-
-            const cards = cardsData.flatMap((data) => [
-                new Card(data.name, data.img),
-                new Card(data.name, data.img),
-            ]);
-            const board = new Board(cards);
-            const memoryGame = new MemoryGame(board, 1000);
-
-            document.getElementById("restart-button").addEventListener("click", () => {
-                memoryGame.resetGame();
-            });
-        });
         this.board.onCardClick = this.#handleCardClick.bind(this);
         this.board.reset();
     }
@@ -164,29 +139,51 @@ class MemoryGame {
         }
     }
 
+    resetGame(){
+        this.board.reset();
+    }
+
     checkForMatch(){
         if(this.flippedCards.length === 2 && this.flippedCards[0].matches(this.flippedCards[1])){
             for (let i = 0; i < this.flippedCards.length; i++) {
-                this.matchedCards.push(this.flippedCards[i])
+                this.matchedCards.push(this.flippedCards[i]);
             }
             this.flippedCards = [];
-            if(this.matchedCards.length === this.board.cards.length){
+            if (this.matchedCards.length === this.board.cards.length) {
                 alert("Ganaste!");
+                this.resetGame();
             }
         }else{
-            setTimeout(()=>{
+            setTimeout(() =>{
                 for (let i = 0; i < this.flippedCards.length; i++) {
                     let card = this.flippedCards[i];
                     card.toggleFlip();
                 }
-                this.flippedCards = [];
-            }, 100);
+                this.flippedCards = [];},100);
         }
     }
-
-    resetGame(){
-        this.board.reset();
-    }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const cardsData = [
+        { name: "Python", img: "./img/Python.svg" },
+        { name: "JavaScript", img: "./img/JS.svg" },
+        { name: "Java", img: "./img/Java.svg" },
+        { name: "CSharp", img: "./img/CSharp.svg" },
+        { name: "Go", img: "./img/Go.svg" },
+        { name: "Ruby", img: "./img/Ruby.svg" },
+    ];
+
+    const cards = cardsData.flatMap((data) => [
+        new Card(data.name, data.img),
+        new Card(data.name, data.img),
+    ]);
+    const board = new Board(cards);
+    const memoryGame = new MemoryGame(board, 1000);
+
+    document.getElementById("restart-button").addEventListener("click", () => {
+        memoryGame.resetGame();
+    });
+});
 
 
