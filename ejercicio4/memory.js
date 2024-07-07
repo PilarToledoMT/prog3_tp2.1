@@ -31,6 +31,20 @@ class Card {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
     }
+
+    toggleFlip() {
+        if (this.isFlipped) {
+            this.#unflip();
+            this.isFlipped = false;
+        }else{
+            this.#flip();
+            this.isFlipped = true;
+        }
+    }
+
+    matches(otherCard) {
+        return (this.name === otherCard.name);
+    }
 }
 
 class Board {
@@ -74,7 +88,33 @@ class Board {
             this.onCardClick(card);
         }
     }
+
+    shuffleCards() {
+        for (let i = this.cards.length -1; i > 0; i--) {
+            const j = Math.floor(Math.random()*(i+1));
+            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+        }
+    }
+
+    flipDownAllCards() {
+        this.cards.forEach((card) =>{
+            if(card.isFlipped){
+                card.toggleFlip()
+            }
+        })
+    }
+
+    reset(){
+        this.flipDownAllCards();
+        clearTimeout(this.timer);
+        this.board.render()
+        this.matchedCards.length = 0;
+        setTimeout(()=> {
+            this.shuffleCards();
+            this.render();}, 500);
+    }
 }
+
 
 class MemoryGame {
     constructor(board, flipDuration = 500) {
@@ -88,6 +128,27 @@ class MemoryGame {
             );
         }
         this.flipDuration = flipDuration;
+        document.addEventListener("DOMContentLoaded", () => {
+            const cardsData = [
+                { name: "Python", img: "./img/Python.svg" },
+                { name: "JavaScript", img: "./img/JS.svg" },
+                { name: "Java", img: "./img/Java.svg" },
+                { name: "CSharp", img: "./img/CSharp.svg" },
+                { name: "Go", img: "./img/Go.svg" },
+                { name: "Ruby", img: "./img/Ruby.svg" },
+            ];
+
+            const cards = cardsData.flatMap((data) => [
+                new Card(data.name, data.img),
+                new Card(data.name, data.img),
+            ]);
+            const board = new Board(cards);
+            const memoryGame = new MemoryGame(board, 1000);
+
+            document.getElementById("restart-button").addEventListener("click", () => {
+                memoryGame.resetGame();
+            });
+        });
         this.board.onCardClick = this.#handleCardClick.bind(this);
         this.board.reset();
     }
@@ -102,26 +163,30 @@ class MemoryGame {
             }
         }
     }
+
+    checkForMatch(){
+        if(this.flippedCards.length === 2 && this.flippedCards[0].matches(this.flippedCards[1])){
+            for (let i = 0; i < this.flippedCards.length; i++) {
+                this.matchedCards.push(this.flippedCards[i])
+            }
+            this.flippedCards = [];
+            if(this.matchedCards.length === this.board.cards.length){
+                alert("Ganaste!");
+            }
+        }else{
+            setTimeout(()=>{
+                for (let i = 0; i < this.flippedCards.length; i++) {
+                    let card = this.flippedCards[i];
+                    card.toggleFlip();
+                }
+                this.flippedCards = [];
+            }, 100);
+        }
+    }
+
+    resetGame(){
+        this.board.reset();
+    }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const cardsData = [
-        { name: "Python", img: "./img/Python.svg" },
-        { name: "JavaScript", img: "./img/JS.svg" },
-        { name: "Java", img: "./img/Java.svg" },
-        { name: "CSharp", img: "./img/CSharp.svg" },
-        { name: "Go", img: "./img/Go.svg" },
-        { name: "Ruby", img: "./img/Ruby.svg" },
-    ];
 
-    const cards = cardsData.flatMap((data) => [
-        new Card(data.name, data.img),
-        new Card(data.name, data.img),
-    ]);
-    const board = new Board(cards);
-    const memoryGame = new MemoryGame(board, 1000);
-
-    document.getElementById("restart-button").addEventListener("click", () => {
-        memoryGame.resetGame();
-    });
-});
